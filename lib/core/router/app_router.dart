@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:podkes_app/features/login/view/login_screen.dart';
 import '../../features/discover/view/discover_screen.dart';
 import '../../features/favorites/view/favorites_screen.dart';
 import '../../features/profile/view/profile_screen.dart';
@@ -33,6 +34,11 @@ final GoRouter appRouter = GoRouter(
           path: '/profile',
           name: 'profile',
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/login',
+          name: 'login',
+          builder: (context, state) => const LoginScreen(),
         ),
       ],
     ),
