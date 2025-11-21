@@ -13,9 +13,10 @@ class AppConfig {
     switch (env) {
       case Environment.dev:
         _instance = AppConfig._internal(
-          baseUrl: 'https://listen-api-test.listennotes.com/api/v2',
+          baseUrl: 'http://10.0.2.2:5269/api',
         );
         break;
+
       case Environment.prod:
         _instance = AppConfig._internal(
           baseUrl: 'https://listen-api-prod.listennotes.com/api/v2',

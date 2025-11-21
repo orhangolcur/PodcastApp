@@ -14,7 +14,7 @@ class PodcastGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final podcasts = state?.podcasts ?? [];
+    final podcasts = state?.displayPodcasts ?? [];
 
     if (isLoading) {
       return GridView.builder(

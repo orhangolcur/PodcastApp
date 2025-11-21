@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => DiscoverCubit(podcastRepository)..fetchPodcasts()),
+          BlocProvider(create: (_) => DiscoverCubit(podcastRepository)..loadPodcasts()),
           BlocProvider(create: (_) => NowPlayingCubit()),
           BlocProvider(create: (_) => FavoriteCubit()..loadFavorites()),
         ],

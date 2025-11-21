@@ -1,39 +1,36 @@
-import 'package:equatable/equatable.dart';
-import 'package:podkes_app/shared/entities/podcast_entitiy.dart';
-import '../../../shared/models/podcast_model.dart';
+import '../../../shared/entities/podcast_entitiy.dart';
 
-abstract class DiscoverState extends Equatable {
-  const DiscoverState();
-
-  @override
-  List<Object?> get props => const [];
-}
+abstract class DiscoverState {}
 
 class DiscoverInitial extends DiscoverState {}
 
 class DiscoverLoading extends DiscoverState {}
 
 class DiscoverLoaded extends DiscoverState {
-  final List<PodcastEntity> podcasts;
-  final String selectedCategoryId;
+  final List<PodcastEntity> allPodcasts;
+  final List<PodcastEntity> displayPodcasts;
+  final String selectedCategory;
 
-  const DiscoverLoaded(this.podcasts, this.selectedCategoryId);
+  DiscoverLoaded({
+    required this.allPodcasts,
+    required this.displayPodcasts,
+    this.selectedCategory = 'All',
+  });
 
-  @override
-  List<Object?> get props => [podcasts, selectedCategoryId];
-
-  @override
-  String toString() => 'DiscoverLoaded(count: ${podcasts.length}, selectedCategory: $selectedCategoryId)';
+  DiscoverLoaded copyWith({
+    List<PodcastEntity>? allPodcasts,
+    List<PodcastEntity>? displayPodcasts,
+    String? selectedCategory,
+  }) {
+    return DiscoverLoaded(
+      allPodcasts: allPodcasts ?? this.allPodcasts,
+      displayPodcasts: displayPodcasts ?? this.displayPodcasts,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
+    );
+  }
 }
 
 class DiscoverError extends DiscoverState {
   final String message;
-
-  const DiscoverError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-
-  @override
-  String toString() => 'DiscoverError: $message';
+  DiscoverError(this.message);
 }

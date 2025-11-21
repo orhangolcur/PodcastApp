@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../entities/podcast_entitiy.dart';
-import '../constants/genre_mapping.dart';
 
 class PodcastModel extends Equatable {
   final String id;
@@ -11,6 +10,8 @@ class PodcastModel extends Equatable {
   final String audioUrl;
   final String description;
   final String categoryId;
+  final bool isFavorite;
+  final bool isTrend;
 
   const PodcastModel({
     required this.id,
@@ -21,37 +22,34 @@ class PodcastModel extends Equatable {
     required this.audioUrl,
     required this.description,
     required this.categoryId,
+    required this.isFavorite,
+    this.isTrend = false,
   });
 
   factory PodcastModel.fromJson(Map<String, dynamic> json) {
-    final podcastData = json['podcast'] ?? {};
-    final genreIds = (podcastData['genre_ids'] as List?)?.map((e) => e as int).toList() ?? [];
-
     return PodcastModel(
-      id: json['id'] ?? '',
-      title: json['title_original'] ?? '',
-      author: podcastData['publisher_original'] ?? '',
-      imageUrl: json['image'] ?? '',
-      duration: Duration(seconds: json['audio_length_sec'] ?? 0),
-      audioUrl: json['audio'] ?? '',
-      description: json['description_original'] ?? '',
-      categoryId: mapGenreToCategory(genreIds),
+      id: json['id']?.toString() ?? '',
+      title: json['title'] ?? '',
+      author: json['category'] ?? 'Genel',
+      imageUrl: json['imageUrl'] ?? 'https://via.placeholder.com/150',
+      duration: const Duration(seconds: 0),
+      audioUrl: '',
+      description: json['description'] ?? '',
+      categoryId: json['category'] ?? 'Genel',
+      isFavorite: json['isFavorite'] ?? false,
+      isTrend: json['isTrend'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'title_original': title,
-      'podcast': {
-        'publisher_original': author,
-        'genre_ids': [],
-      },
-      'image': imageUrl,
-      'audio_length_sec': duration.inSeconds,
-      'audio': audioUrl,
-      'description_original': description,
-      'category_id': categoryId,
+      'title': title,
+      'description': description,
+      'imageUrl': imageUrl,
+      'category': categoryId,
+      'isTrend': isTrend,
+      'isFavorite': isFavorite,
     };
   }
 
@@ -64,6 +62,8 @@ class PodcastModel extends Equatable {
     String? audioUrl,
     String? description,
     String? categoryId,
+    bool? isTrend,
+    bool? isFavorite,
   }) {
     return PodcastModel(
       id: id ?? this.id,
@@ -74,6 +74,8 @@ class PodcastModel extends Equatable {
       audioUrl: audioUrl ?? this.audioUrl,
       description: description ?? this.description,
       categoryId: categoryId ?? this.categoryId,
+      isTrend: isTrend ?? this.isTrend,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -87,15 +89,17 @@ class PodcastModel extends Equatable {
       audioUrl: entity.audioUrl,
       description: entity.description,
       categoryId: entity.categoryId,
+      isTrend: entity.isTrend,
+      isFavorite: entity.isFavorite,
     );
   }
 
   @override
-  List<Object> get props => [id];
+  List<Object> get props => [id, title, author, categoryId, isTrend, isFavorite];
 
   @override
   String toString() {
-    return 'PodcastModel(title: $title, author: $author)';
+    return 'PodcastModel(title: $title, category: $author, isTrend: $isTrend, isFav: $isFavorite)';
   }
 }
 
@@ -109,5 +113,7 @@ extension PodcastMapper on PodcastModel {
     audioUrl: audioUrl,
     description: description,
     categoryId: categoryId,
+    isFavorite: isFavorite,
+    isTrend: isTrend,
   );
 }

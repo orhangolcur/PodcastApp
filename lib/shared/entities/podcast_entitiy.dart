@@ -3,12 +3,16 @@ import 'package:equatable/equatable.dart';
 class PodcastEntity extends Equatable {
   final String id;
   final String title;
-  final String author;
+  final String author; // Biz buraya Category basıyoruz
   final String imageUrl;
   final Duration duration;
   final String audioUrl;
   final String description;
   final String categoryId;
+
+  // --- YENİ EKLENENLER ---
+  final bool isFavorite;
+  final bool isTrend;
 
   const PodcastEntity({
     required this.id,
@@ -19,11 +23,17 @@ class PodcastEntity extends Equatable {
     required this.audioUrl,
     required this.description,
     required this.categoryId,
+    // Varsayılan değerler atadık ki eski kodlar bozulmasın
+    this.isFavorite = false,
+    this.isTrend = false,
   });
 
+  // Equatable props'a isFavorite eklemek önemli!
+  // Böylece favori durumu değişince Bloc bunu algılar ve ekranı günceller.
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, isFavorite, isTrend];
 
+  // COPYWITH GÜNCELLEMESİ (En kritik yer burasıydı)
   PodcastEntity copyWith({
     String? id,
     String? title,
@@ -33,6 +43,8 @@ class PodcastEntity extends Equatable {
     String? audioUrl,
     String? description,
     String? categoryId,
+    bool? isFavorite, // Yeni
+    bool? isTrend,    // Yeni
   }) {
     return PodcastEntity(
       id: id ?? this.id,
@@ -43,6 +55,8 @@ class PodcastEntity extends Equatable {
       audioUrl: audioUrl ?? this.audioUrl,
       description: description ?? this.description,
       categoryId: categoryId ?? this.categoryId,
+      isFavorite: isFavorite ?? this.isFavorite,
+      isTrend: isTrend ?? this.isTrend,
     );
   }
 
@@ -56,6 +70,8 @@ class PodcastEntity extends Equatable {
       'audioUrl': audioUrl,
       'description': description,
       'categoryId': categoryId,
+      'isFavorite': isFavorite,
+      'isTrend': isTrend,
     };
   }
 
@@ -69,6 +85,8 @@ class PodcastEntity extends Equatable {
       audioUrl: map['audioUrl'] ?? '',
       description: map['description'] ?? '',
       categoryId: map['categoryId'] ?? '',
+      isFavorite: map['isFavorite'] ?? false,
+      isTrend: map['isTrend'] ?? false,
     );
   }
 }
