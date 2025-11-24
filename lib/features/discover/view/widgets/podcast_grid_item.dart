@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../favorites/cubit/favorite_cubit.dart';
-import '../../../now_playing/cubit/now_playing_cubit.dart';
 import '../../cubit/discover_state.dart';
 
 class PodcastGrid extends StatelessWidget {
@@ -105,8 +104,7 @@ class PodcastGrid extends StatelessWidget {
 
             return GestureDetector(
               onTap: () {
-                context.read<NowPlayingCubit>().setPodcast(podcast);
-                context.push('/now-playing');
+                context.push('/podcast-details', extra: podcast);
               },
               child: Container(
                 decoration: BoxDecoration(

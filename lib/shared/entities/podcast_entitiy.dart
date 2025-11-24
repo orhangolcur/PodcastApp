@@ -1,18 +1,18 @@
 import 'package:equatable/equatable.dart';
+import 'package:podkes_app/shared/entities/episode_entity.dart';
 
 class PodcastEntity extends Equatable {
   final String id;
   final String title;
-  final String author; // Biz buraya Category basıyoruz
+  final String author;
   final String imageUrl;
   final Duration duration;
   final String audioUrl;
   final String description;
   final String categoryId;
-
-  // --- YENİ EKLENENLER ---
   final bool isFavorite;
   final bool isTrend;
+  final List<EpisodeEntity> episodes;
 
   const PodcastEntity({
     required this.id,
@@ -23,17 +23,14 @@ class PodcastEntity extends Equatable {
     required this.audioUrl,
     required this.description,
     required this.categoryId,
-    // Varsayılan değerler atadık ki eski kodlar bozulmasın
     this.isFavorite = false,
     this.isTrend = false,
+    this.episodes = const [],
   });
 
-  // Equatable props'a isFavorite eklemek önemli!
-  // Böylece favori durumu değişince Bloc bunu algılar ve ekranı günceller.
   @override
-  List<Object?> get props => [id, isFavorite, isTrend];
+  List<Object?> get props => [id, isFavorite, isTrend, episodes];
 
-  // COPYWITH GÜNCELLEMESİ (En kritik yer burasıydı)
   PodcastEntity copyWith({
     String? id,
     String? title,
@@ -43,8 +40,9 @@ class PodcastEntity extends Equatable {
     String? audioUrl,
     String? description,
     String? categoryId,
-    bool? isFavorite, // Yeni
-    bool? isTrend,    // Yeni
+    bool? isFavorite,
+    bool? isTrend,
+    List<EpisodeEntity>? episodes,
   }) {
     return PodcastEntity(
       id: id ?? this.id,
@@ -57,6 +55,7 @@ class PodcastEntity extends Equatable {
       categoryId: categoryId ?? this.categoryId,
       isFavorite: isFavorite ?? this.isFavorite,
       isTrend: isTrend ?? this.isTrend,
+      episodes: episodes ?? this.episodes,
     );
   }
 

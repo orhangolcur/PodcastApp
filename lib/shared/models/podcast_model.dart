@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:podkes_app/shared/models/episode_model.dart';
 import '../entities/podcast_entitiy.dart';
 
 class PodcastModel extends Equatable {
@@ -12,6 +13,7 @@ class PodcastModel extends Equatable {
   final String categoryId;
   final bool isFavorite;
   final bool isTrend;
+  final List<EpisodeModel> episodes;
 
   const PodcastModel({
     required this.id,
@@ -24,20 +26,30 @@ class PodcastModel extends Equatable {
     required this.categoryId,
     required this.isFavorite,
     this.isTrend = false,
+    this.episodes = const [],
   });
 
   factory PodcastModel.fromJson(Map<String, dynamic> json) {
+    var episodesList = <EpisodeModel>[];
+    if (json['episodes'] != null) {
+      episodesList = (json['episodes'] as List)
+          .map((e) => EpisodeModel.fromJson(e))
+          .toList();
+    }
     return PodcastModel(
       id: json['id']?.toString() ?? '',
       title: json['title'] ?? '',
       author: json['category'] ?? 'Genel',
       imageUrl: json['imageUrl'] ?? 'https://via.placeholder.com/150',
-      duration: const Duration(seconds: 0),
-      audioUrl: '',
+      duration: episodesList.isNotEmpty
+          ? Duration(minutes: episodesList.first.durationMinutes.toInt())
+          : const Duration(seconds: 0),
+      audioUrl: episodesList.isNotEmpty ? episodesList.first.audioUrl : '',
       description: json['description'] ?? '',
       categoryId: json['category'] ?? 'Genel',
       isFavorite: json['isFavorite'] ?? false,
       isTrend: json['isTrend'] ?? false,
+      episodes: episodesList,
     );
   }
 
@@ -115,5 +127,6 @@ extension PodcastMapper on PodcastModel {
     categoryId: categoryId,
     isFavorite: isFavorite,
     isTrend: isTrend,
+    episodes: episodes.map((e) => e.toEntity()).toList(),
   );
 }
