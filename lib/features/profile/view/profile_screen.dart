@@ -1,12 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/auth_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final AuthService _authService = AuthService();
+
+  String _username = "Loading...";
+  String _email = "Loading...";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userData = await _authService.getUserDetails();
+    if (mounted) {
+      setState(() {
+        _username = userData['username']!;
+        _email = userData['email']!;
+      });
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    await _authService.logout();
+    if (mounted) {
+      context.go('/login');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final firstLetter = _username.isNotEmpty ? _username[0].toUpperCase() : "?";
+
     return Scaffold(
       backgroundColor: const Color(0xFF1C1B2D),
       appBar: AppBar(
@@ -26,12 +62,20 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 48.r,
-                      backgroundImage: const AssetImage('assets/images/profile.jpg'),
+                      backgroundColor: Colors.deepPurpleAccent,
+                      child: Text(
+                        firstLetter,
+                        style: TextStyle(
+                            fontSize: 40.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
                     ),
                     SizedBox(height: 16.h),
 
                     Text(
-                      'Orhan Gölcür',
+                      _username,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.sp,
@@ -41,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
                     SizedBox(height: 4.h),
 
                     Text(
-                      'orhangolcur0@gmail.com',
+                      _email,
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 14.sp,
@@ -53,126 +97,44 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileCard(
                       icon: Icons.favorite_border,
                       title: 'Favorites',
-                      onTap: () => context.go("/favorites"),
+                      onTap: () => context.push("/favorites"),
                     ),
                     SizedBox(height: 12.h),
-
                     _buildProfileCard(
                       icon: Icons.info_outline,
                       title: 'About Podkes',
-                      onTap: () {
-                        showAboutDialog(
-                          context: context,
-                          applicationName: 'Podkes',
-                          applicationVersion: 'v1.0.0',
-                          applicationIcon: Icon(Icons.podcasts, size: 32.sp),
-                          children: [
-                            Text(
-                              'Podkes is a podcast discovery app that allows you to explore and listen to trending episodes from all over the world.',
-                              style: TextStyle(fontSize: 14.sp),
-                            ),
-                          ],
-                        );
-                      },
+                      onTap: () => showAboutDialog(context: context),
                     ),
                     SizedBox(height: 12.h),
-
                     _buildProfileCard(
                       icon: Icons.star_border,
                       title: 'Rate Podkes',
-                      onTap: () {
-                        int selectedRating = 0;
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return Dialog(
-                              backgroundColor: const Color(0xFF262033),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.r)),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-                                child: StatefulBuilder(
-                                  builder: (context, setState) {
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Rate Podkes',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20.sp,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(height: 12.h),
-                                        Text(
-                                          'How would you rate our app?',
-                                          style: TextStyle(color: Colors.white70, fontSize: 14.sp),
-                                        ),
-                                        SizedBox(height: 20.h),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: List.generate(5, (index) {
-                                            final starIndex = index + 1;
-                                            return IconButton(
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              iconSize: 32.sp,
-                                              onPressed: () =>
-                                                  setState(() => selectedRating = starIndex),
-                                              icon: Icon(
-                                                selectedRating >= starIndex
-                                                    ? Icons.star
-                                                    : Icons.star_border,
-                                                color: Colors.amber,
-                                              ),
-                                            );
-                                          }),
-                                        ),
-                                        SizedBox(height: 24.h),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          children: [
-                                            TextButton(
-                                              child: Text(
-                                                'Cancel',
-                                                style: TextStyle(
-                                                    color: Colors.white70, fontSize: 14.sp),
-                                              ),
-                                              onPressed: () => Navigator.pop(context),
-                                            ),
-                                            SizedBox(width: 8.w),
-                                            TextButton(
-                                              child: Text(
-                                                'Submit',
-                                                style: TextStyle(
-                                                    color: Colors.amber, fontSize: 14.sp),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                if (selectedRating > 0) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Thanks for rating us $selectedRating star${selectedRating > 1 ? 's' : ''}!',
-                                                        style: TextStyle(fontSize: 14.sp),
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                      onTap: () {},
+                    ),
+
+                    SizedBox(height: 32.h),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        onPressed: _handleLogout,
+                        icon: Icon(Icons.logout, color: Colors.redAccent, size: 20.sp),
+                        label: Text(
+                          "Log Out",
+                          style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          backgroundColor: Colors.redAccent.withOpacity(0.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -188,14 +150,13 @@ class ProfileScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    Color color = const Color(0xFF262033),
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         decoration: BoxDecoration(
-          color: color,
+          color: const Color(0xFF262033),
           borderRadius: BorderRadius.circular(16.r),
         ),
         child: Row(

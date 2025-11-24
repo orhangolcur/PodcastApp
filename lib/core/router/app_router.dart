@@ -5,6 +5,7 @@ import 'package:podkes_app/features/login/view/login_screen.dart';
 import 'package:podkes_app/shared/entities/podcast_entitiy.dart';
 import '../../features/discover/view/discover_screen.dart';
 import '../../features/favorites/view/favorites_screen.dart';
+import '../../features/login/view/register_screen.dart';
 import '../../features/now_playing/cubit/now_playing_state.dart';
 import '../../features/podcast_details/view/podcast_detail_screen.dart';
 import '../../features/profile/view/profile_screen.dart';
@@ -42,6 +43,11 @@ final GoRouter appRouter = GoRouter(
           path: '/login',
           name: 'login',
           builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          name: 'register',
+          builder: (context, state) => const RegisterScreen(),
         ),
         GoRoute(
           path: '/podcast-details',

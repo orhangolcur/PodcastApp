@@ -3,43 +3,60 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/services/auth_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
-  Future<void> _handleLogin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+  Future<void> _handleRegister() async {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen tüm alanları doldurun')),
       );
       return;
     }
 
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Şifreler uyuşmuyor!')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    final success = await _authService.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    final success = await _authService.register(username, email, password);
 
     setState(() => _isLoading = false);
 
     if (success && mounted) {
-      context.go('/discover');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kayıt Başarılı! Lütfen giriş yapın.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      context.go('/login');
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Giriş başarısız! E-posta veya şifre hatalı.'),
+          content: const Text('Kayıt başarısız. E-posta kullanılıyor olabilir.'),
           backgroundColor: Colors.red.shade800,
         ),
       );
@@ -58,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
-                  onTap: () => context.go('/'),
+                  onTap: () => context.go('/login'),
                   child: Container(
                     padding: EdgeInsets.all(10.w),
                     decoration: BoxDecoration(
@@ -68,11 +85,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
                   ),
                 ),
-
-                SizedBox(height: 40.h),
+                SizedBox(height: 30.h),
 
                 Text(
-                  "Let's sign you in.",
+                  "Create Account",
                   style: TextStyle(
                     fontSize: 32.sp,
                     fontWeight: FontWeight.bold,
@@ -81,39 +97,45 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 12.h),
                 Text(
-                  "Welcome back.\nYou've been missed!",
-                  style: TextStyle(
-                    fontSize: 24.sp,
-                    color: Colors.white70,
-                  ),
+                  "Join the community and start listening.",
+                  style: TextStyle(fontSize: 16.sp, color: Colors.white70),
                 ),
+                SizedBox(height: 40.h),
 
-                SizedBox(height: 60.h),
-
-                // Email Input
+                // Inputs
+                _buildTextField(
+                  controller: _usernameController,
+                  hintText: 'Username',
+                  icon: Icons.person_outline,
+                ),
+                SizedBox(height: 20.h),
                 _buildTextField(
                   controller: _emailController,
                   hintText: 'Email',
                   icon: Icons.email_outlined,
                 ),
-
                 SizedBox(height: 20.h),
-
-                // Password Input
                 _buildTextField(
                   controller: _passwordController,
                   hintText: 'Password',
                   icon: Icons.lock_outline,
                   isPassword: true,
                 ),
+                SizedBox(height: 20.h),
+                _buildTextField(
+                  controller: _confirmPasswordController,
+                  hintText: 'Confirm Password',
+                  icon: Icons.lock_outline,
+                  isPassword: true,
+                ),
 
-                SizedBox(height: 60.h),
+                SizedBox(height: 40.h),
 
                 SizedBox(
                   width: double.infinity,
                   height: 60.h,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
+                    onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
@@ -123,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.black)
                         : Text(
-                      "Sign In",
+                      "Sign Up",
                       style: TextStyle(
                         color: const Color(0xFF15121E),
                         fontSize: 18.sp,
@@ -139,15 +161,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
+                      "Already have an account? ",
                       style: TextStyle(color: Colors.white54, fontSize: 14.sp),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        context.push("/register");
-                      },
+                      onTap: () => context.go('/login'),
                       child: Text(
-                        "Register",
+                        "Sign In",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

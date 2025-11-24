@@ -1,9 +1,7 @@
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../network/api_client.dart';
 
 class AuthService {
-  // Backend adresin (Emülatör için 10.0.2.2)
-  // Backend'inin HTTP portunu kontrol et (5000 olabilir, 5123 olabilir)
   final ApiClient _apiClient = ApiClient(baseUrl: 'http://10.0.2.2:5269/api');
 
   Future<bool> login(String email, String password) async {
@@ -14,9 +12,12 @@ class AuthService {
       });
 
       if (response != null && response['token'] != null) {
-        print('Giriş Başarılı! Token: ${response['token']}');
-
         _apiClient.setToken(response['token']);
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', response['token']);
+        await prefs.setString('user_email', response['email'] ?? '');
+        await prefs.setString('user_name', response['username'] ?? '');
 
         return true;
       }
@@ -25,6 +26,21 @@ class AuthService {
       print('Login Hatası: $e');
       return false;
     }
+  }
+
+  Future<Map<String, String>> getUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'email': prefs.getString('user_email') ?? 'Guest',
+      'username': prefs.getString('user_name') ?? 'Guest User',
+    };
+  }
+
+  Future<void> logout() async {
+    _apiClient.setToken(null);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 
   Future<bool> register(String username, String email, String password) async {
