@@ -1,66 +1,48 @@
-import 'dart:convert';
-import 'dart:collection';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../features/favorites/cubit/favorite_state.dart';
-import '../../../shared/entities/podcast_entitiy.dart';
-import '../../../shared/models/podcast_model.dart';
+import 'package:podkes_app/shared/entities/podcast_entitiy.dart';
+import 'package:podkes_app/shared/repositories/podcast/podcast_repository.dart';
+import 'favorite_state.dart';
 
 class FavoriteCubit extends Cubit<FavoriteState> {
-  static const _storageKey = 'favorite_podcasts';
+  final PodcastRepository _repository;
 
-  FavoriteCubit() : super(const FavoriteUpdated([]));
-
-  Future<void> loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_storageKey);
-
-    if (jsonString != null) {
-      try {
-        final List<dynamic> decoded = json.decode(jsonString);
-        final favorites = decoded
-            .map((e) => PodcastModel.fromJson(e as Map<String, dynamic>).toEntity())
-            .toList();
-        emit(FavoriteUpdated(favorites));
-      } catch (e) {
-        print('Favoriler yüklenirken hata oluştu: $e');
-        emit(const FavoriteUpdated([]));
-      }
-    }
+  FavoriteCubit(this._repository) : super(FavoriteState([])) {
+    loadFavorites();
   }
 
-  void toggleFavorite(PodcastEntity podcast) async {
-    final currentState = state;
-    if (currentState is FavoriteUpdated) {
-      final currentFavorites = List<PodcastEntity>.from(currentState.favorites);
-      if (currentFavorites.contains(podcast)) {
-        currentFavorites.remove(podcast);
-      } else {
-        currentFavorites.add(podcast);
-      }
-
-      emit(FavoriteUpdated(currentFavorites));
-      await _saveFavorites(currentFavorites);
+  Future<void> loadFavorites() async {
+    try {
+      final ids = await _repository.getMySubscriptionIds();
+      emit(FavoriteState(ids));
+    } catch (e) {
+      print("Favoriler yüklenemedi: $e");
+      emit(FavoriteState([]));
     }
   }
 
   bool isFavorite(PodcastEntity podcast) {
-    final currentState = state;
-    return currentState is FavoriteUpdated &&
-        currentState.favorites.contains(podcast);
+    return state.favoriteIds.any((id) => id.toLowerCase() == podcast.id.toLowerCase());
   }
 
-  UnmodifiableListView<PodcastEntity> get favorites {
-    final currentState = state;
-    if (currentState is FavoriteUpdated) {
-      return UnmodifiableListView(currentState.favorites);
+  Future<void> toggleFavorite(PodcastEntity podcast) async {
+    final String id = podcast.id;
+    final optimisticList = List<String>.from(state.favoriteIds);
+
+    if (isFavorite(podcast)) {
+      optimisticList.removeWhere((e) => e.toLowerCase() == id.toLowerCase());
+    } else {
+      optimisticList.add(id);
     }
-    return UnmodifiableListView([]);
-  }
+    emit(FavoriteState(optimisticList));
 
-  Future<void> _saveFavorites(List<PodcastEntity> favorites) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = favorites.map((e) => PodcastModel.fromEntity(e).toJson()).toList();
-    await prefs.setString(_storageKey, json.encode(jsonList));
+    try {
+      await _repository.toggleFavorite(id);
+      await loadFavorites();
+
+    } catch (e) {
+      debugPrint("Hata oluştu, eski haline dönülüyor: $e");
+      await loadFavorites();
+    }
   }
 }

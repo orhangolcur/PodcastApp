@@ -11,11 +11,13 @@ import 'shared/repositories/podcast/podcast_repository.dart';
 import 'podkes_app.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String? initialToken;
+
+  const MyApp({super.key, this.initialToken});
 
   @override
   Widget build(BuildContext context) {
-    final podcastRepository = _createPodcastRepository();
+    final podcastRepository = _createPodcastRepository(initialToken);
 
     return MultiRepositoryProvider(
       providers: [
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
         providers: [
           BlocProvider(create: (_) => DiscoverCubit(podcastRepository)..loadPodcasts()),
           BlocProvider(create: (_) => NowPlayingCubit()),
-          BlocProvider(create: (_) => FavoriteCubit()..loadFavorites()),
+          BlocProvider(create: (_) => FavoriteCubit(podcastRepository)..loadFavorites()),
         ],
         child: ScreenUtilInit(
           designSize: const Size(375, 812),
@@ -37,8 +39,13 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  PodcastRepository _createPodcastRepository() {
+  PodcastRepository _createPodcastRepository(String? token) {
     final apiClient = ApiClient(baseUrl: AppConfig.instance.baseUrl);
+
+    if (token != null) {
+      apiClient.setToken(token);
+    }
+
     return PodcastApiRepository(apiClient);
   }
 }

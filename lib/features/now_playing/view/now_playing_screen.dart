@@ -53,23 +53,7 @@ class NowPlayingScreen extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             centerTitle: true,
-            actions: [
-              BlocBuilder<FavoriteCubit, FavoriteState>(
-                builder: (context, favState) {
-                  final isFav = context.read<FavoriteCubit>().isFavorite(podcast);
-                  return IconButton(
-                    icon: Icon(
-                      isFav ? Icons.favorite : Icons.favorite_border,
-                      color: isFav ? Colors.red : Colors.white,
-                      size: 24.sp,
-                    ),
-                    onPressed: () {
-                      context.read<FavoriteCubit>().toggleFavorite(podcast);
-                    },
-                  );
-                },
-              ),
-            ],
+
           ),
           body: SafeArea(
             child: SingleChildScrollView(

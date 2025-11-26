@@ -4,4 +4,5 @@ abstract class PodcastRepository {
   Future<List<PodcastEntity>> getPodcasts();
   Future<bool> toggleFavorite(String podcastId);
   Future<List<String>> getMySubscriptionIds();
+  Future<List<PodcastEntity>> getFavoritePodcasts();
 }

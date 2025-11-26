@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:podkes_app/features/favorites/cubit/favorite_cubit.dart';
 import '../../../core/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
+      await context.read<FavoriteCubit>().loadFavorites();
       context.go('/discover');
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,18 +1,10 @@
 import 'package:equatable/equatable.dart';
-import '../../../shared/entities/podcast_entitiy.dart';
 
-abstract class FavoriteState extends Equatable {
-  const FavoriteState();
+class FavoriteState extends Equatable {
+  final List<String> favoriteIds;
 
-  @override
-  List<Object?> get props => [];
-}
-
-class FavoriteUpdated extends FavoriteState {
-  final List<PodcastEntity> favorites;
-
-  const FavoriteUpdated(this.favorites);
+  const FavoriteState(this.favoriteIds);
 
   @override
-  List<Object?> get props => [favorites];
+  List<Object?> get props => [favoriteIds];
 }

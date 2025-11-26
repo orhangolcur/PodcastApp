@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:podkes_app/core/network/api_client.dart';
 import 'package:podkes_app/shared/models/podcast_model.dart';
 import 'package:podkes_app/shared/repositories/podcast/podcast_repository.dart';
@@ -33,8 +34,8 @@ class PodcastApiRepository implements PodcastRepository {
     try {
       final response = await _apiClient.post('/Subscriptions/$podcastId');
 
-      if (response != null && response['isSubscribed'] != null) {
-        return response['isSubscribed'];
+      if (response != null && response['subscribed'] != null) {
+        return response['subscribed'];
       }
       return false;
     } catch (e) {
@@ -47,11 +48,33 @@ class PodcastApiRepository implements PodcastRepository {
   Future<List<String>> getMySubscriptionIds() async {
     try {
       final response = await _apiClient.get('/Subscriptions');
+
       if (response is List) {
-        return response.map((e) => e['id'].toString()).toList();
+        final ids = response.map((e) => e['id'].toString()).toList();
+        return ids;
       }
+
+      debugPrint("Cevap bir liste değil!");
       return [];
+
     } catch (e) {
+      debugPrint("Favorileri çekerken hata: $e");
+      return [];
+    }
+  }
+
+  @override
+  Future<List<PodcastEntity>> getFavoritePodcasts() async {
+    try {
+      final response = await _apiClient.get('/Subscriptions');
+
+      if (response is! List) return [];
+
+      return response.map((item) {
+        return PodcastModel.fromJson(item).toEntity();
+      }).toList();
+    } catch (e) {
+      debugPrint('Favori listesi çekilemedi: $e');
       return [];
     }
   }

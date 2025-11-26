@@ -89,7 +89,7 @@ class FavoriteListItem extends StatelessWidget {
             IconButton(
               onPressed: () {
                 context.read<NowPlayingCubit>().setPodcast(podcast);
-                context.push('/now-playing');
+                context.push('/podcast-details', extra: podcast);
               },
               icon: Icon(Icons.play_arrow, color: Colors.white, size: 24.sp),
               tooltip: 'Play',

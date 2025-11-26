@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class ApiClient {
   final String baseUrl;
 
-  String? _token;
+  static String? _token;
 
   ApiClient({required this.baseUrl});
 

@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:podkes_app/features/now_playing/cubit/now_playing_cubit.dart';
 import '../../../shared/entities/podcast_entitiy.dart';
+import '../../favorites/cubit/favorite_cubit.dart';
+import '../../favorites/cubit/favorite_state.dart';
 
 class PodcastDetailScreen extends StatelessWidget {
   final PodcastEntity podcast;
@@ -36,21 +38,74 @@ class PodcastDetailScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          podcast.title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          podcast.author,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16.sp,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    podcast.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  Text(
+                                    podcast.author,
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 16.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            BlocBuilder<FavoriteCubit, FavoriteState>(
+                              builder: (context, state) {
+                                final isFav = context.read<FavoriteCubit>().isFavorite(podcast);
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    context.read<FavoriteCubit>().toggleFavorite(podcast);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                                    decoration: BoxDecoration(
+                                      color: isFav ? Colors.white : const Color(0xFF6C63FF),
+                                      borderRadius: BorderRadius.circular(20.r),
+                                      border: isFav ? Border.all(color: Colors.white) : null,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          isFav ? Icons.check : Icons.add,
+                                          color: isFav ? Colors.black : Colors.white,
+                                          size: 20.sp,
+                                        ),
+                                        SizedBox(width: 4.w),
+                                        Text(
+                                          isFav ? "Following" : "Follow",
+                                          style: TextStyle(
+                                            color: isFav ? Colors.black : Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
