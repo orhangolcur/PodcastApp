@@ -92,7 +92,7 @@ class DiscoverScreen extends StatelessWidget {
                     onChanged: (value) =>
                         context.read<DiscoverCubit>().updateSearch(value),
                     decoration: InputDecoration(
-                      hintText: 'Search',
+                      hintText: 'Elif',
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: const Color(0xFF262033),

@@ -78,4 +78,20 @@ class PodcastApiRepository implements PodcastRepository {
       return [];
     }
   }
+
+  @override
+  Future<List<PodcastEntity>> searchPodcasts(String query) async {
+    try {
+      final response = await _apiClient.get('/Podcasts/search?SearchTerm=$query');
+
+      if (response is! List) return [];
+
+      return response.map((item) {
+        return PodcastModel.fromJson(item).toEntity();
+      }).toList();
+    } catch (e) {
+      print('Arama hatası: $e');
+      return [];
+    }
+  }
 }

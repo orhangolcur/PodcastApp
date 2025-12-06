@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:podkes_app/shared/repositories/podcast/podcast_repository.dart';
 import '../../../shared/entities/podcast_entitiy.dart';
@@ -8,6 +10,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
 
   List<PodcastEntity> _allPodcasts = [];
   String selectedCategoryId = 'All';
+  Timer? _debounce;
 
   DiscoverCubit(this._repository) : super(DiscoverInitial()) {
     loadPodcasts();
@@ -51,17 +54,31 @@ class DiscoverCubit extends Cubit<DiscoverState> {
   }
 
   void updateSearch(String query) {
-    if (state is DiscoverLoaded) {
-      final currentState = state as DiscoverLoaded;
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-      final filteredList = currentState.allPodcasts.where((podcast) {
-        final titleLower = podcast.title.toLowerCase();
-        final searchLower = query.toLowerCase();
-        return titleLower.contains(searchLower);
-      }).toList();
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
 
-      emit(currentState.copyWith(displayPodcasts: filteredList));
-    }
+      if (query.isEmpty) {
+        selectCategory(selectedCategoryId);
+        return;
+      }
+
+      if (state is DiscoverLoaded) {
+
+        try {
+          final searchResults = await _repository.searchPodcasts(query);
+
+          final currentState = state as DiscoverLoaded;
+
+          emit(currentState.copyWith(
+            displayPodcasts: searchResults,
+          ));
+
+        } catch (e) {
+          print("Arama hatası: $e");
+        }
+      }
+    });
   }
 
   Future<void> toggleFavorite(String podcastId) async {
