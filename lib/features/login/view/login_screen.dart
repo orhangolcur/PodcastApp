@@ -29,23 +29,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    final success = await _authService.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
-
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      await context.read<FavoriteCubit>().loadFavorites();
-      context.go('/discover');
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Giriş başarısız! E-posta veya şifre hatalı.'),
-          backgroundColor: Colors.red.shade800,
-        ),
+    try {
+      await _authService.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
+
+      if (mounted) {
+        await context.read<FavoriteCubit>().loadFavorites();
+        context.go('/discover');
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorMessage = e.toString().replaceAll("Exception: ", "");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

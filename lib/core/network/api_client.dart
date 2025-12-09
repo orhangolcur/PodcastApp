@@ -46,30 +46,41 @@ class ApiClient {
   }
 
   dynamic _processResponse(http.Response response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return null;
+    dynamic body;
 
-      try {
-        return json.decode(response.body);
-      } catch (e) {
-        throw Exception('JSON çözümleme hatası: $e');
-      }
-    } else {
-      switch (response.statusCode) {
-        case 400:
-          final errorData = json.decode(response.body);
-          throw Exception(errorData['message'] ?? 'Hatalı istek (400).');
-        case 401:
-          throw Exception('Yetkisiz erişim (401). Oturum açmanız gerekebilir.');
-        case 403:
-          throw Exception('Erişim reddedildi (403).');
-        case 404:
-          throw Exception('Kaynak bulunamadı (404).');
-        case 500:
-          throw Exception('Sunucu hatası (500).');
-        default:
-          throw Exception('API hatası: ${response.statusCode}');
-      }
+    try {
+      body = response.body.isNotEmpty ? json.decode(response.body) : null;
+    } catch (e) {
+      body = response.body;
+    }
+
+    switch (response.statusCode) {
+      case 200:
+      case 201:
+        return body;
+
+      case 400:
+        if (body is Map && body['errors'] != null) {
+          final errors = body['errors'];
+
+          if (errors is List && errors.isNotEmpty) {
+            throw Exception(errors.first.toString());
+          }
+          if (errors is String) {
+            throw Exception(errors);
+          }
+        }
+        throw Exception("Lütfen girdiğiniz bilgileri kontrol edin.");
+
+      case 401:
+        throw Exception("Oturum süresi doldu.");
+      case 403:
+        throw Exception("Yetkisiz işlem.");
+      case 500:
+        print("Server Error Detayı: $body");
+        throw Exception("Sunucu hatası. Lütfen daha sonra tekrar deneyin.");
+      default:
+        throw Exception("Bir hata oluştu: ${response.statusCode}");
     }
   }
 }

@@ -4,27 +4,20 @@ import '../network/api_client.dart';
 class AuthService {
   final ApiClient _apiClient = ApiClient(baseUrl: 'http://10.0.2.2:5269/api');
 
-  Future<bool> login(String email, String password) async {
-    try {
-      final response = await _apiClient.post('/Auth/login', body: {
-        'email': email,
-        'password': password,
-      });
+  Future<void> login(String email, String password) async {
 
-      if (response != null && response['token'] != null) {
-        _apiClient.setToken(response['token']);
+    final response = await _apiClient.post('/Auth/login', body: {
+      'email': email,
+      'password': password,
+    });
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', response['token']);
-        await prefs.setString('user_email', response['email'] ?? '');
-        await prefs.setString('user_name', response['username'] ?? '');
+    if (response != null && response['token'] != null) {
+      _apiClient.setToken(response['token']);
 
-        return true;
-      }
-      return false;
-    } catch (e) {
-      print('Login Hatası: $e');
-      return false;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', response['token']);
+      await prefs.setString('user_email', response['email'] ?? '');
+      await prefs.setString('user_name', response['username'] ?? '');
     }
   }
 
@@ -38,25 +31,16 @@ class AuthService {
 
   Future<void> logout() async {
     _apiClient.setToken(null);
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
 
-  Future<bool> register(String username, String email, String password) async {
-    try {
-      final response = await _apiClient.post('/Auth/register', body: {
-        'username': username,
-        'email': email,
-        'password': password,
-        'confirmPassword': password,
-      });
-
-      print('Kayıt Başarılı: $response');
-      return true;
-    } catch (e) {
-      print('Register Hatası: $e');
-      return false;
-    }
+  Future<void> register(String username, String email, String password) async {
+    await _apiClient.post('/Auth/register', body: {
+      'username': username,
+      'email': email,
+      'password': password,
+      'confirmPassword': password,
+    });
   }
 }

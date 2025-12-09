@@ -43,26 +43,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    final success = await _authService.register(username, email, password);
+    try {
+      await _authService.register(username, email, password);
 
-    setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kayıt Başarılı! Lütfen giriş yapın.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorMessage = e.toString().replaceAll("Exception: ", "");
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kayıt Başarılı! Lütfen giriş yapın.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      await context.read<FavoriteCubit>().loadFavorites();
-      context.go('/login');
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Kayıt başarısız. E-posta kullanılıyor olabilir.'),
-          backgroundColor: Colors.red.shade800,
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
