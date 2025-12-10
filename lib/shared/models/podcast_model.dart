@@ -62,6 +62,7 @@ class PodcastModel extends Equatable {
       'category': categoryId,
       'isTrend': isTrend,
       'isFavorite': isFavorite,
+      'episodes': episodes.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -76,6 +77,7 @@ class PodcastModel extends Equatable {
     String? categoryId,
     bool? isTrend,
     bool? isFavorite,
+    List<EpisodeModel>? episodes,
   }) {
     return PodcastModel(
       id: id ?? this.id,
@@ -88,6 +90,7 @@ class PodcastModel extends Equatable {
       categoryId: categoryId ?? this.categoryId,
       isTrend: isTrend ?? this.isTrend,
       isFavorite: isFavorite ?? this.isFavorite,
+      episodes: episodes ?? this.episodes,
     );
   }
 
@@ -103,15 +106,16 @@ class PodcastModel extends Equatable {
       categoryId: entity.categoryId,
       isTrend: entity.isTrend,
       isFavorite: entity.isFavorite,
+      episodes: entity.episodes.map((e) => EpisodeModel.fromEntity(e)).toList(),
     );
   }
 
   @override
-  List<Object> get props => [id, title, author, categoryId, isTrend, isFavorite];
+  List<Object> get props => [id, title, author, categoryId, isTrend, isFavorite, episodes];
 
   @override
   String toString() {
-    return 'PodcastModel(title: $title, category: $author, isTrend: $isTrend, isFav: $isFavorite)';
+    return 'PodcastModel(title: $title, episodesCount: ${episodes.length})';
   }
 }
 

@@ -43,10 +43,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
-          onPressed: () => context.pop(),
-        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

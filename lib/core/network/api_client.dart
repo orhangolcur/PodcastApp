@@ -73,7 +73,7 @@ class ApiClient {
         throw Exception("Lütfen girdiğiniz bilgileri kontrol edin.");
 
       case 401:
-        throw Exception("Oturum süresi doldu.");
+        throw Exception("E-posta veya şifre hatalı.");
       case 403:
         throw Exception("Yetkisiz işlem.");
       case 500:

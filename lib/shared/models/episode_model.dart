@@ -29,6 +29,28 @@ class EpisodeModel extends Equatable {
     );
   }
 
+  factory EpisodeModel.fromEntity(EpisodeEntity entity) {
+    return EpisodeModel(
+      id: entity.id,
+      title: entity.title,
+      description: entity.description,
+      audioUrl: entity.audioUrl,
+      durationMinutes: entity.duration.inMinutes.toDouble(),
+      publishedDate: entity.publishedDate?.toIso8601String() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'audioUrl': audioUrl,
+      'durationMinutes': durationMinutes,
+      'publishedDate': publishedDate,
+    };
+  }
+
   EpisodeEntity toEntity() {
     return EpisodeEntity(
       id: id,
@@ -41,5 +63,5 @@ class EpisodeModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, title, audioUrl];
+  List<Object?> get props => [id, title, audioUrl, durationMinutes];
 }

@@ -34,13 +34,13 @@ class MainScreen extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              context.go('/home');
+              context.push('/home');
               break;
             case 1:
-              context.go('/favorites');
+              context.push('/favorites');
               break;
             case 2:
-              context.go('/profile');
+              context.push('/profile');
               break;
           }
         },

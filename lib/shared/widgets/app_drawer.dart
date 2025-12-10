@@ -1,9 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/auth_service.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  String _username = "Misafir";
+  String _email = "";
+
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userDetails = await _authService.getUserDetails();
+
+    if (mounted) {
+      setState(() {
+        _username = userDetails['username'] ?? "Misafir Kullanıcı";
+        _email = userDetails['email'] ?? "";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +62,7 @@ class AppDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Orhan Gölcür',
+                          _username,
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
@@ -43,7 +71,7 @@ class AppDrawer extends StatelessWidget {
                         ),
                         SizedBox(height: 6.h),
                         Text(
-                          'orhangolcur0@gmail.com',
+                          _email,
                           style: TextStyle(fontSize: 13.sp, color: Colors.white70),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -72,6 +100,18 @@ class AppDrawer extends StatelessWidget {
               label: 'Profile',
               selected: currentPath == '/profile',
               onTap: () => context.go('/profile'),
+            ),
+
+            _DrawerItem(
+              icon: Icons.logout,
+              label: 'Logout',
+              selected: false,
+              onTap: () async {
+                await _authService.logout();
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              },
             ),
 
             SizedBox(height: 20.h),
