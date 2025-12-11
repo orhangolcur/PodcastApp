@@ -45,6 +45,37 @@ class ApiClient {
     return _processResponse(response);
   }
 
+  Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
+    final url = Uri.parse('$baseUrl$path');
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (_token != null) {
+      headers['Authorization'] = 'Bearer $_token';
+    }
+
+    print('PUT Request: $url');
+    if (body != null) {
+      print('Body: $body');
+    }
+
+    try {
+      final response = await http.put(
+        url,
+        headers: headers,
+        body: body != null ? json.encode(body) : null,
+      );
+
+      return _processResponse(response);
+    } catch (e) {
+      print("Network Error: $e");
+      throw Exception("Bağlantı hatası. İnternetinizi kontrol edin.");
+    }
+  }
+
   dynamic _processResponse(http.Response response) {
     dynamic body;
 

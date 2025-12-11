@@ -8,6 +8,7 @@ import '../../features/favorites/view/favorites_screen.dart';
 import '../../features/login/view/register_screen.dart';
 import '../../features/now_playing/cubit/now_playing_state.dart';
 import '../../features/podcast_details/view/podcast_detail_screen.dart';
+import '../../features/profile/view/edit_profile_screen.dart';
 import '../../features/profile/view/profile_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
 import '../../features/now_playing/cubit/now_playing_cubit.dart';
@@ -55,6 +56,13 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) {
             final podcast = state.extra as PodcastEntity;
             return PodcastDetailScreen(podcast: podcast);
+          },
+        ),
+        GoRoute(
+          path: '/edit-profile',
+          builder: (context, state) {
+            final userData = state.extra as Map<String, dynamic>;
+            return EditProfileScreen(userData: userData);
           },
         ),
       ],

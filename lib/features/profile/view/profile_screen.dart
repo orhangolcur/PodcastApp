@@ -16,6 +16,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _username = "Loading...";
   String _email = "Loading...";
 
+  String _bio = "";
+  String _imageUrl = "";
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -23,11 +27,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final userData = await _authService.getUserDetails();
+    final userDetails = await _authService.getUserDetails();
+
     if (mounted) {
       setState(() {
-        _username = userData['username']!;
-        _email = userData['email']!;
+        _username = userDetails['username'] ?? "Kullanıcı";
+        _email = userDetails['email'] ?? "";
+        _bio = userDetails['bio'] ?? "Henüz bir biyografi eklenmemiş.";
+        _imageUrl = userDetails['imageUrl'] ?? "";
+
+        _isLoading = false;
       });
     }
   }
@@ -50,6 +59,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.white),
+            onPressed: () async {
+              final result = await context.push('/edit-profile', extra: {
+                'username': _username,
+                'bio': _bio == "Henüz bir biyografi eklenmemiş." ? "" : _bio,
+                'imageUrl': _imageUrl,
+              });
+
+              if (result == true) {
+                _loadUserData();
+              }
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -61,36 +86,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     CircleAvatar(
-                      radius: 48.r,
-                      backgroundColor: Colors.deepPurpleAccent,
-                      child: Text(
-                        firstLetter,
-                        style: TextStyle(
-                            fontSize: 40.sp,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
+                      radius: 50.r,
+                      backgroundColor: Colors.grey.shade800,
+                      backgroundImage: _imageUrl.isNotEmpty
+                          ? NetworkImage(_imageUrl)
+                          : const AssetImage('assets/images/profile.jpg') as ImageProvider,
                     ),
+
                     SizedBox(height: 16.h),
 
                     Text(
                       _username,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                    SizedBox(height: 4.h),
 
                     Text(
                       _email,
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14.sp,
+                      style: TextStyle(fontSize: 14.sp, color: Colors.white54),
+                    ),
+
+                    SizedBox(height: 12.h),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32.w),
+                      child: Text(
+                        _bio,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14.sp, color: Colors.white70, fontStyle: FontStyle.italic),
                       ),
-                      textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 32.h),
 

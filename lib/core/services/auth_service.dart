@@ -24,8 +24,10 @@ class AuthService {
   Future<Map<String, String>> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     return {
-      'email': prefs.getString('user_email') ?? 'Guest',
-      'username': prefs.getString('user_name') ?? 'Guest User',
+      'username': prefs.getString('username') ?? '',
+      'email': prefs.getString('email') ?? '',
+      'bio': prefs.getString('bio') ?? '',
+      'imageUrl': prefs.getString('imageUrl') ?? '',
     };
   }
 
@@ -42,5 +44,43 @@ class AuthService {
       'password': password,
       'confirmPassword': password,
     });
+
+  }
+  Future<bool> updateProfile({
+    required String username,
+    required String bio,
+    required String imageUrl,
+  }) async {
+    try {
+      final response = await _apiClient.put(
+        '/Users/update-profile',
+        body: {
+          'username': username,
+          'bio': bio,
+          'imageUrl': imageUrl,
+        },
+      );
+
+      if (response != null && response['success'] == true) {
+        await updateLocalUserData(username, bio, imageUrl);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Profil güncellenemedi: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> updateLocalUserData(String username, String bio, String imageUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString('username', username);
+
+    await prefs.setString('bio', bio);
+
+    await prefs.setString('imageUrl', imageUrl);
+
+    print("Lokal veri güncellendi: $bio");
   }
 }
