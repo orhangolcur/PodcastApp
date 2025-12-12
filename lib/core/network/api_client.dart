@@ -114,4 +114,35 @@ class ApiClient {
         throw Exception("Bir hata oluştu: ${response.statusCode}");
     }
   }
+
+  Future<String?> uploadImage(String filepath) async {
+    final uri = Uri.parse('$baseUrl/Files/upload');
+
+    var request = http.MultipartRequest('POST', uri);
+
+    if (_token != null) {
+      request.headers['Authorization'] = 'Bearer $_token';
+    }
+
+    request.files.add(await http.MultipartFile.fromPath('file', filepath));
+
+    print("Resim yükleniyor... $uri");
+
+    try {
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        print("Yükleme Başarılı: ${jsonResponse['url']}");
+        return jsonResponse['url'];
+      } else {
+        print("Upload Hatası: ${response.statusCode} - ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("Upload Exception: $e");
+      return null;
+    }
+  }
 }
