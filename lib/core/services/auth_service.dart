@@ -17,6 +17,7 @@ class AuthService {
         final prefs = await SharedPreferences.getInstance();
 
         await prefs.setString('auth_token', response['token']);
+        await prefs.setString('refresh_token', response['refreshToken']);
         await prefs.setString('username', response['username'] ?? '');
         await prefs.setString('email', response['email'] ?? '');
         await prefs.setString('bio', response['bio'] ?? '');

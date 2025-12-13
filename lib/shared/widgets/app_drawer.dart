@@ -13,6 +13,7 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   String _username = "Misafir";
   String _email = "";
+  String _imageUrl = "";
 
   final AuthService _authService = AuthService();
 
@@ -29,6 +30,7 @@ class _AppDrawerState extends State<AppDrawer> {
       setState(() {
         _username = userDetails['username'] ?? "Misafir Kullanıcı";
         _email = userDetails['email'] ?? "";
+        _imageUrl = userDetails['imageUrl'] ?? "";
       });
     }
   }
@@ -54,7 +56,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 children: [
                   CircleAvatar(
                     radius: 32.r,
-                    backgroundImage: const AssetImage('assets/images/profile.jpg'),
+                    backgroundImage: NetworkImage(_imageUrl),
                   ),
                   SizedBox(width: 16.w),
                   Expanded(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart'; // ✅ EKLENDİ
+import 'package:image_picker/image_picker.dart';
 import '../../../core/services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -40,6 +40,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  bool get _hasChanges {
+    final initialUsername = widget.userData['username'] ?? '';
+    final initialBio = widget.userData['bio'] ?? '';
+    final initialImage = widget.userData['imageUrl'] ?? '';
+
+    return _usernameController.text != initialUsername ||
+        _bioController.text != initialBio ||
+        _imageUrlController.text != initialImage;
+  }
+
   Future<void> _pickAndUploadImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -56,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Resim yüklendi! Kaydetmeyi unutmayın.'), backgroundColor: Colors.green),
+              const SnackBar(content: Text('Image uploaded! Don\'t forget to save.'), backgroundColor: Colors.green),
             );
           }
         }
@@ -64,7 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Resim seçilemedi: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Could not pick image: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -73,6 +83,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    if (!_hasChanges) return;
+
     setState(() => _isLoading = true);
 
     try {
@@ -84,14 +96,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil başarıyla güncellendi!'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
         );
         context.pop(true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -101,10 +113,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isSaveEnabled = _hasChanges && !_isLoading && !_isUploading;
+
     return Scaffold(
       backgroundColor: const Color(0xFF1C1B2D),
       appBar: AppBar(
-        title: Text("Profili Düzenle", style: TextStyle(fontSize: 18.sp)),
+        title: Text("Edit Profile", style: TextStyle(fontSize: 18.sp)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -113,10 +127,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: (_isLoading || _isUploading) ? null : _saveProfile,
+            onPressed: isSaveEnabled ? _saveProfile : null,
             child: _isLoading
                 ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text("Kaydet", style: TextStyle(color: (_isLoading || _isUploading) ? Colors.white24 : Colors.blueAccent, fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                : Text(
+              "Save",
+              style: TextStyle(
+                color: isSaveEnabled ? Colors.blueAccent : Colors.white24,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           )
         ],
       ),
@@ -161,18 +182,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             SizedBox(height: 30.h),
 
-            _buildTextField("Kullanıcı Adı", _usernameController),
+            _buildTextField("Username", _usernameController),
             SizedBox(height: 20.h),
-            _buildTextField("Biyografi", _bioController, maxLines: 3),
+            _buildTextField("Bio", _bioController, maxLines: 3),
             SizedBox(height: 20.h),
-
-            _buildTextField("Resim URL", _imageUrlController, hint: "http://...", readOnly: false),
-
-            SizedBox(height: 10.h),
-            Text(
-              "Fotoğraf ikonuna tıklayarak galeriden yükleme yapabilirsiniz.",
-              style: TextStyle(color: Colors.white38, fontSize: 12.sp),
-            ),
           ],
         ),
       ),
@@ -190,9 +203,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           maxLines: maxLines,
           readOnly: readOnly,
           style: const TextStyle(color: Colors.white),
-          onChanged: (val) {
-            if(label == "Resim URL") setState(() {});
-          },
+          onChanged: (val) => setState(() {}),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: Colors.white24),
