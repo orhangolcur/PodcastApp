@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:podkes_app/features/favorites/cubit/favorite_cubit.dart';
 import '../../../core/services/auth_service.dart';
+import '../../auth/views/forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -116,7 +117,33 @@ class _LoginScreenState extends State<LoginScreen> {
                   isPassword: true,
                 ),
 
-                SizedBox(height: 60.h),
+                SizedBox(height: 10.h),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      "Forgot Password?",
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 40.h),
 
                 SizedBox(
                   width: double.infinity,

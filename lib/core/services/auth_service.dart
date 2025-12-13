@@ -96,4 +96,44 @@ class AuthService {
   Future<String?> uploadProfileImage(String filePath) async {
     return await _apiClient.uploadImage(filePath);
   }
+
+  Future<bool> forgotPassword(String email) async {
+    try {
+      final response = await _apiClient.post('/Auth/forgot-password', body: {
+        'email': email,
+      });
+
+      if (response != null && response['success'] == true) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Forgot Password Hatası: $e");
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String token,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await _apiClient.post('/Auth/reset-password', body: {
+        'email': email,
+        'resetToken': token,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      });
+
+      if (response != null && response['success'] == true) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Reset Password Hatası: $e");
+      return false;
+    }
+  }
 }
