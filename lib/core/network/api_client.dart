@@ -1,4 +1,4 @@
-import 'dart:async'; // 👈 Completer için bunu ekle
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -8,6 +8,8 @@ class ApiClient {
   final String baseUrl;
   String? _token;
   Completer<bool>? _refreshCompleter;
+  static const String kAccessTokenKey = 'auth_token';
+  static const String kRefreshTokenKey = 'refresh_token';
 
   ApiClient({required this.baseUrl});
 
@@ -65,42 +67,31 @@ class ApiClient {
       print("⚠️ Token süresi dolmuş! (401)");
 
       if (_refreshCompleter != null) {
-        print("⏳ Zaten yenileme yapılıyor, sırada bekleniyor...");
         bool success = await _refreshCompleter!.future;
-
         if (success) {
-          print("✅ Bekleme bitti, token yenilenmiş. İstek tekrar ediliyor...");
           return _processResponse(await requestFn());
         } else {
-          print("❌ Bekleme bitti ama yenileme başarısız olmuş.");
           return null;
         }
       }
 
       _refreshCompleter = Completer<bool>();
-
-      print("🔄 Yenileme işlemi başlatılıyor...");
       bool refreshed = await _refreshToken();
-
       _refreshCompleter?.complete(refreshed);
       _refreshCompleter = null;
 
       if (refreshed) {
-        print("✅ Token yenilendi! İstek tekrar ediliyor...");
         response = await requestFn();
-      } else {
-        print("❌ Token yenilenemedi. Çıkış yapılmalı.");
       }
     }
-
     return _processResponse(response);
   }
 
   Future<bool> _refreshToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final refreshToken = prefs.getString('refresh_token');
-      final accessToken = prefs.getString('auth_token');
+      final refreshToken = prefs.getString(kRefreshTokenKey);
+      final accessToken = prefs.getString(kAccessTokenKey);
 
       if (refreshToken == null) return false;
 
@@ -116,23 +107,20 @@ class ApiClient {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         if (data['success'] == true) {
-          final newToken = data['accessToken'];
+          final newToken = data['accessToken'] ?? data['token'];
           final newRefreshToken = data['refreshToken'];
 
-          await prefs.setString('auth_token', newToken);
+          await prefs.setString(kAccessTokenKey, newToken);
           if (newRefreshToken != null) {
-            await prefs.setString('refresh_token', newRefreshToken);
+            await prefs.setString(kRefreshTokenKey, newRefreshToken);
           }
-
           setToken(newToken);
           return true;
         }
       }
       return false;
     } catch (e) {
-      print("Refresh Error: $e");
       return false;
     }
   }
@@ -149,12 +137,33 @@ class ApiClient {
   }
 
   dynamic _processResponse(http.Response response) {
+    String responseBody = utf8.decode(response.bodyBytes);
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return null;
-      return json.decode(utf8.decode(response.bodyBytes));
-    } else {
-      print("API Error: ${response.statusCode} - ${response.body}");
-      return null;
+      if (responseBody.isEmpty) return null;
+      return json.decode(responseBody);
+    }
+
+    else {
+      String errorMessage = "Bir hata oluştu (${response.statusCode})";
+
+      try {
+        if (responseBody.isNotEmpty) {
+          dynamic decoded = json.decode(responseBody);
+          if (decoded is Map && decoded['message'] != null) {
+            errorMessage = decoded['message'];
+          } else if (decoded is String) {
+            errorMessage = decoded;
+          } else if (decoded is List && decoded.isNotEmpty) {
+            errorMessage = decoded.first.toString();
+          }
+        }
+      } catch (e) {
+        if (responseBody.isNotEmpty) errorMessage = responseBody;
+      }
+
+      print("❌ API Error: $errorMessage");
+      throw Exception(errorMessage);
     }
   }
 }

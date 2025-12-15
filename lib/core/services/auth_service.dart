@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import '../network/api_client.dart';
+import '../network/api_client.dart'; // Dosya yolunu kontrol et
 
 class AuthService {
   final ApiClient _apiClient = ApiClient(baseUrl: 'http://10.0.2.2:5269/api');
@@ -11,24 +11,38 @@ class AuthService {
         'password': password,
       });
 
-      if (response != null && response['token'] != null) {
-        _apiClient.setToken(response['token']);
+      String? token;
+      if (response != null) {
+        token = response['token'] ?? response['accessToken'];
+        if (token == null && response['data'] != null) {
+          token = response['data']['token'] ?? response['data']['accessToken'];
+        }
+      }
+
+      if (token != null) {
+        _apiClient.setToken(token);
 
         final prefs = await SharedPreferences.getInstance();
 
-        await prefs.setString('auth_token', response['token']);
-        await prefs.setString('refresh_token', response['refreshToken']);
-        await prefs.setString('username', response['username'] ?? '');
-        await prefs.setString('email', response['email'] ?? '');
-        await prefs.setString('bio', response['bio'] ?? '');
-        await prefs.setString('imageUrl', response['imageUrl'] ?? '');
+        await prefs.setString(ApiClient.kAccessTokenKey, token);
+
+        // Refresh token varsa kaydet
+        String? refreshToken = response['refreshToken'];
+        if (refreshToken != null) {
+          await prefs.setString(ApiClient.kRefreshTokenKey, refreshToken);
+        }
+
+        await prefs.setString('username', response['username'] ?? response['data']?['username'] ?? '');
+        await prefs.setString('email', response['email'] ?? response['data']?['email'] ?? '');
+        await prefs.setString('bio', response['bio'] ?? response['data']?['bio'] ?? '');
+        await prefs.setString('imageUrl', response['imageUrl'] ?? response['data']?['imageUrl'] ?? '');
 
         return true;
       }
       return false;
     } catch (e) {
-      print("Login Hatası: $e");
-      return false;
+      String message = e.toString().replaceAll("Exception: ", "");
+      throw Exception(message);
     }
   }
 
@@ -89,8 +103,6 @@ class AuthService {
     await prefs.setString('username', username);
     await prefs.setString('bio', bio);
     await prefs.setString('imageUrl', imageUrl);
-
-    print("Lokal veri güncellendi -> Bio: $bio");
   }
 
   Future<String?> uploadProfileImage(String filePath) async {
