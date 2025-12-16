@@ -6,4 +6,5 @@ abstract class PodcastRepository {
   Future<bool> toggleFavorite(String podcastId);
   Future<List<String>> getMySubscriptionIds();
   Future<List<PodcastEntity>> getFavoritePodcasts();
+  void resetSession();
 }

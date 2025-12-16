@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:podkes_app/features/discover/cubit/discover_cubit.dart';
 import 'package:podkes_app/features/favorites/cubit/favorite_cubit.dart';
 import '../../../core/services/auth_service.dart';
 import '../../auth/views/forgot_password_screen.dart';
@@ -37,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
+        await context.read<DiscoverCubit>().loadPodcasts();
         await context.read<FavoriteCubit>().loadFavorites();
         context.go('/discover');
       }

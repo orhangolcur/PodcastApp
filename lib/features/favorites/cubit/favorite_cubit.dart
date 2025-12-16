@@ -38,11 +38,18 @@ class FavoriteCubit extends Cubit<FavoriteState> {
 
     try {
       await _repository.toggleFavorite(id);
-      await loadFavorites();
-
     } catch (e) {
       debugPrint("Hata oluştu, eski haline dönülüyor: $e");
       await loadFavorites();
     }
+  }
+
+  void resetState() {
+    emit(FavoriteState([]));
+  }
+
+  Future<void> refreshFavorites() async {
+    resetState();
+    await loadFavorites();
   }
 }

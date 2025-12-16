@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:podkes_app/shared/repositories/podcast/podcast_repository.dart';
 import '../../../shared/entities/podcast_entitiy.dart';
@@ -22,9 +21,9 @@ class DiscoverCubit extends Cubit<DiscoverState> {
       _allPodcasts = await _repository.getPodcasts();
 
       emit(DiscoverLoaded(
-          allPodcasts: _allPodcasts,
-          displayPodcasts: _allPodcasts,
-          selectedCategory: 'All'
+        allPodcasts: _allPodcasts,
+        displayPodcasts: _allPodcasts,
+        selectedCategory: 'All',
       ));
     } catch (e) {
       emit(DiscoverError("Podcastler yüklenemedi: $e"));
@@ -39,9 +38,9 @@ class DiscoverCubit extends Cubit<DiscoverState> {
       List<PodcastEntity> filteredList;
 
       if (categoryId == 'All') {
-        filteredList = currentState.allPodcasts;
+        filteredList = _allPodcasts;
       } else {
-        filteredList = currentState.allPodcasts
+        filteredList = _allPodcasts
             .where((p) => p.author == categoryId)
             .toList();
       }
@@ -57,14 +56,12 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
     _debounce = Timer(const Duration(milliseconds: 500), () async {
-
       if (query.isEmpty) {
         selectCategory(selectedCategoryId);
         return;
       }
 
       if (state is DiscoverLoaded) {
-
         try {
           final searchResults = await _repository.searchPodcasts(query);
 
@@ -73,7 +70,6 @@ class DiscoverCubit extends Cubit<DiscoverState> {
           emit(currentState.copyWith(
             displayPodcasts: searchResults,
           ));
-
         } catch (e) {
           print("Arama hatası: $e");
         }
@@ -85,16 +81,43 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     if (state is DiscoverLoaded) {
       final currentState = state as DiscoverLoaded;
 
-      final updatedList = currentState.displayPodcasts.map((p) {
+      final updatedDisplayList = currentState.displayPodcasts.map((p) {
         if (p.id == podcastId) {
           return p.copyWith(isFavorite: !p.isFavorite);
         }
         return p;
       }).toList();
 
-      emit(currentState.copyWith(displayPodcasts: updatedList));
+      _allPodcasts = _allPodcasts.map((p) {
+        if (p.id == podcastId) {
+          return p.copyWith(isFavorite: !p.isFavorite);
+        }
+        return p;
+      }).toList();
+      emit(currentState.copyWith(
+        displayPodcasts: updatedDisplayList,
+        allPodcasts: _allPodcasts,
+      ));
 
-      await _repository.toggleFavorite(podcastId);
+      try {
+        await _repository.toggleFavorite(podcastId);
+      } catch (e) {
+        print("Favori hatası: $e");
+      }
     }
+  }
+
+  void resetState() {
+    _allPodcasts = [];
+    selectedCategoryId = 'All';
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _repository.resetSession();
+    emit(DiscoverInitial());
+  }
+
+  Future<void> refreshPodcasts() async {
+    resetState();
+    await loadPodcasts();
   }
 }

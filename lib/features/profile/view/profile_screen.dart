@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/services/auth_service.dart';
+import '../../discover/cubit/discover_cubit.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,7 +17,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _username = "Loading...";
   String _email = "Loading...";
-
   String _bio = "";
   String _imageUrl = "";
   bool _isLoading = true;
@@ -35,7 +36,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _email = userDetails['email'] ?? "";
         _bio = userDetails['bio'] ?? "Henüz bir biyografi eklenmemiş.";
         _imageUrl = userDetails['imageUrl'] ?? "";
-
         _isLoading = false;
       });
     }
@@ -43,15 +43,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _handleLogout() async {
     await _authService.logout();
+
     if (mounted) {
+      context.read<DiscoverCubit>().resetState();
+
       context.go('/login');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final firstLetter = _username.isNotEmpty ? _username[0].toUpperCase() : "?";
-
     return Scaffold(
       backgroundColor: const Color(0xFF1C1B2D),
       appBar: AppBar(
@@ -88,7 +89,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     CircleAvatar(
                       radius: 50.r,
                       backgroundColor: Colors.grey.shade800,
-                      backgroundImage: NetworkImage(_imageUrl),
+                      backgroundImage: _imageUrl.isNotEmpty
+                          ? NetworkImage(_imageUrl)
+                          : null,
+                      child: _imageUrl.isEmpty
+                          ? Icon(Icons.person, size: 50.r, color: Colors.white)
+                          : null,
                     ),
 
                     SizedBox(height: 16.h),

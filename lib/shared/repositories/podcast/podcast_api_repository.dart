@@ -94,4 +94,9 @@ class PodcastApiRepository implements PodcastRepository {
       return [];
     }
   }
+
+  @override
+  void resetSession() {
+    _apiClient.setToken(null);
+  }
 }
