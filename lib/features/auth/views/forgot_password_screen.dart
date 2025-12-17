@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:podkes_app/features/auth/views/reset_password_screen.dart';
 import '../../../core/services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -12,12 +11,15 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
 
   Future<void> _sendCode() async {
-    if (_emailController.text.isEmpty) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -30,13 +32,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verification code sent to your email!'), backgroundColor: Colors.green),
       );
+      final emailToSend = _emailController.text.trim();
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ResetPasswordScreen(email: _emailController.text.trim()),
-        ),
-      );
+      _emailController.clear();
+
+      context.push('/reset-password', extra: emailToSend);
+
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to send code. Please check your email.'), backgroundColor: Colors.red),
@@ -58,45 +59,63 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.all(24.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Forgot Password?", style: TextStyle(color: Colors.white, fontSize: 28.sp, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10.h),
-            Text("Don't worry! It happens. Please enter the address associated with your account.", style: TextStyle(color: Colors.white70, fontSize: 14.sp)),
-            SizedBox(height: 40.h),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Forgot Password?", style: TextStyle(color: Colors.white, fontSize: 28.sp, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10.h),
+              Text("Don't worry! It happens. Please enter the address associated with your account.", style: TextStyle(color: Colors.white70, fontSize: 14.sp)),
+              SizedBox(height: 40.h),
 
-            // Email Input
-            TextField(
-              controller: _emailController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.alternate_email, color: Colors.white54),
-                hintText: "Email",
-                hintStyle: const TextStyle(color: Colors.white24),
-                filled: true,
-                fillColor: const Color(0xFF262033),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
-              ),
-            ),
-            SizedBox(height: 30.h),
+              TextFormField(
+                controller: _emailController,
+                style: const TextStyle(color: Colors.white),
 
-            // Send Button
-            SizedBox(
-              width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _sendCode,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                autovalidateMode: AutovalidateMode.disabled,
+
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Email is required.";
+                  }
+                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return "Please enter a valid email address.";
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.alternate_email, color: Colors.white54),
+                  hintText: "Email",
+                  hintStyle: const TextStyle(color: Colors.white24),
+                  filled: true,
+                  fillColor: const Color(0xFF262033),
+                  errorStyle: const TextStyle(color: Colors.redAccent),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
+                  errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Colors.redAccent)),
+                  focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Colors.redAccent)),
                 ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text("Submit", style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold)),
               ),
-            ),
-          ],
+              SizedBox(height: 30.h),
+
+              // Send Button
+              SizedBox(
+                width: double.infinity,
+                height: 50.h,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _sendCode,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text("Submit", style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

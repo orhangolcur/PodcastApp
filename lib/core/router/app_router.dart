@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:podkes_app/features/login/view/login_screen.dart';
+import 'package:podkes_app/features/auth/views/forgot_password_screen.dart';
+import 'package:podkes_app/features/auth/views/login_screen.dart';
 import 'package:podkes_app/shared/entities/podcast_entitiy.dart';
+import '../../features/auth/views/reset_password_screen.dart';
 import '../../features/discover/view/discover_screen.dart';
 import '../../features/favorites/view/favorites_screen.dart';
-import '../../features/login/view/register_screen.dart';
+import '../../features/auth/views/register_screen.dart';
 import '../../features/now_playing/cubit/now_playing_state.dart';
 import '../../features/podcast_details/view/podcast_detail_screen.dart';
 import '../../features/profile/view/edit_profile_screen.dart';
@@ -16,12 +18,14 @@ import '../../features/now_playing/view/now_playing_screen.dart';
 import '../widgets/custom_nav_shell.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login',
   routes: [
+    /*
     GoRoute(
       path: '/',
       builder: (context, state) => const OnboardingScreen(),
     ),
+    */
     ShellRoute(
       builder: (context, state, child) => CustomNavShell(child: child),
       routes: [
@@ -41,16 +45,6 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
-          path: '/login',
-          name: 'login',
-          builder: (context, state) => const LoginScreen(),
-        ),
-        GoRoute(
-          path: '/register',
-          name: 'register',
-          builder: (context, state) => const RegisterScreen(),
-        ),
-        GoRoute(
           path: '/podcast-details',
           name: 'podcastDetails',
           builder: (context, state) {
@@ -65,29 +59,53 @@ final GoRouter appRouter = GoRouter(
             return EditProfileScreen(userData: userData);
           },
         ),
+        GoRoute(
+          path: '/now-playing',
+          name: 'nowPlaying',
+          builder: (context, state) {
+            final nowPlayingState = context.read<NowPlayingCubit>().state;
+
+            if (nowPlayingState is NowPlayingLoaded) {
+              final currentPodcast = nowPlayingState.podcast;
+              return NowPlayingScreen(podcast: currentPodcast);
+            }
+
+            return const Scaffold(
+              backgroundColor: Color(0xFF1C1B2D),
+              body: Center(
+                child: Text(
+                  'Henüz bir podcast seçilmedi',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+            );
+          },
+        ),
       ],
     ),
     GoRoute(
-      path: '/now-playing',
-      name: 'nowPlaying',
+      path: '/login',
+      name: 'login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      name: 'register',
+      builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+        path: '/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/reset-password',
       builder: (context, state) {
-        final nowPlayingState = context.read<NowPlayingCubit>().state;
-
-        if (nowPlayingState is NowPlayingLoaded) {
-          final currentPodcast = nowPlayingState.podcast;
-          return NowPlayingScreen(podcast: currentPodcast);
-        }
-
-        return const Scaffold(
-          backgroundColor: Color(0xFF1C1B2D),
-          body: Center(
-            child: Text(
-              'Henüz bir podcast seçilmedi',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-        );
+        final email = state.extra as String? ?? "";
+        return ResetPasswordScreen(email: email);
       },
     ),
+
+
   ],
 );
