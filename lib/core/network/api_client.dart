@@ -142,19 +142,28 @@ class ApiClient {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (responseBody.isEmpty) return null;
       return json.decode(responseBody);
-    }
-
-    else {
+    } else {
       String errorMessage = "Bir hata oluştu (${response.statusCode})";
 
       try {
         if (responseBody.isNotEmpty) {
           dynamic decoded = json.decode(responseBody);
-          if (decoded is Map && decoded['message'] != null) {
-            errorMessage = decoded['message'];
-          } else if (decoded is String) {
+
+          if (decoded is Map) {
+            if (decoded['errors'] != null && decoded['errors'] is List && (decoded['errors'] as List).isNotEmpty) {
+              errorMessage = decoded['errors'][0].toString();
+            }
+            else if (decoded['message'] != null) {
+              errorMessage = decoded['message'].toString();
+            }
+            else if (decoded['title'] != null) {
+              errorMessage = decoded['title'].toString();
+            }
+          }
+          else if (decoded is String) {
             errorMessage = decoded;
-          } else if (decoded is List && decoded.isNotEmpty) {
+          }
+          else if (decoded is List && decoded.isNotEmpty) {
             errorMessage = decoded.first.toString();
           }
         }
