@@ -40,7 +40,7 @@ class CustomNavShell extends StatelessWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_music),
-            label: 'Library',
+            label: 'Favorites',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
